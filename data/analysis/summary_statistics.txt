@@ -1,0 +1,24 @@
+GradSim Analysis Summary - gpt2
+==================================================
+
+Overall Statistics:
+  mean_entanglement: 0.8244
+  std_entanglement: 0.1065
+  median_entanglement: 0.8414
+  max_entanglement: 0.9521
+  min_entanglement: 0.6092
+
+Category-wise Statistics:
+  Person: mean=0.8197, std=0.1277, n=7
+  Organization: mean=0.8055, std=nan, n=1
+  Location: mean=0.8839, std=nan, n=1
+  Time: mean=0.8173, std=nan, n=1
+
+Group-wise Statistics:
+  EntityFact: mean=0.8252, std=0.1129, n=9
+  EventRelation: mean=0.8173, std=nan, n=1
+
+Entanglement Comparison:
+  Local entanglement: 0.9052
+  Distant entanglement: 0.4770
+  Local/Distant ratio: 1.8977

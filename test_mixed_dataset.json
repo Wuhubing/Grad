@@ -1,0 +1,167 @@
+[
+  {
+    "_id": "hotpot_train_0",
+    "question": "Which magazine was started first Arthur's Magazine or First for Women?",
+    "answer": "Arthur's Magazine",
+    "supporting_facts": [
+      [
+        "Arthur's Magazine",
+        0
+      ],
+      [
+        "First for Women",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Arthur's Magazine",
+        [
+          "Arthur's Magazine is related to Arthur's Magazine.",
+          "Additional information about Arthur's Magazine."
+        ]
+      ],
+      [
+        "First for Women",
+        [
+          "First for Women connects to the answer Arthur's Magazine.",
+          "More details about First for Women."
+        ]
+      ]
+    ],
+    "dataset": "hotpotqa_test",
+    "source": "existing_test_data"
+  },
+  {
+    "_id": "hotpot_train_1",
+    "question": "The Oberoi family is part of a hotel company that has a head office in what city?",
+    "answer": "Delhi",
+    "supporting_facts": [
+      [
+        "Oberoi family",
+        0
+      ],
+      [
+        "The Oberoi Group",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Oberoi family",
+        [
+          "Oberoi family is related to Delhi.",
+          "Additional information about Oberoi family."
+        ]
+      ],
+      [
+        "The Oberoi Group",
+        [
+          "The Oberoi Group connects to the answer Delhi.",
+          "More details about The Oberoi Group."
+        ]
+      ]
+    ],
+    "dataset": "hotpotqa_test",
+    "source": "existing_test_data"
+  },
+  {
+    "_id": "hotpot_train_2",
+    "question": "Musician and satirist Allie Goertz wrote a song about the \"The Simpsons\" character Milhouse, who Matt Groening named after who?",
+    "answer": "President Richard Nixon",
+    "supporting_facts": [
+      [
+        "Allie Goertz",
+        0
+      ],
+      [
+        "Allie Goertz",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Allie Goertz",
+        [
+          "Allie Goertz is related to President Richard Nixon.",
+          "Additional information about Allie Goertz."
+        ]
+      ],
+      [
+        "Allie Goertz",
+        [
+          "Allie Goertz connects to the answer President Richard Nixon.",
+          "More details about Allie Goertz."
+        ]
+      ]
+    ],
+    "dataset": "hotpotqa_test",
+    "source": "existing_test_data"
+  },
+  {
+    "_id": "hotpot_train_3",
+    "question": " What nationality was James Henry Miller's wife?",
+    "answer": "American",
+    "supporting_facts": [
+      [
+        "Peggy Seeger",
+        0
+      ],
+      [
+        "Peggy Seeger",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Peggy Seeger",
+        [
+          "Peggy Seeger is related to American.",
+          "Additional information about Peggy Seeger."
+        ]
+      ],
+      [
+        "Peggy Seeger",
+        [
+          "Peggy Seeger connects to the answer American.",
+          "More details about Peggy Seeger."
+        ]
+      ]
+    ],
+    "dataset": "hotpotqa_test",
+    "source": "existing_test_data"
+  },
+  {
+    "_id": "hotpot_train_4",
+    "question": "Cadmium Chloride is slightly soluble in this chemical, it is also called what?",
+    "answer": "alcohol",
+    "supporting_facts": [
+      [
+        "Cadmium chloride",
+        0
+      ],
+      [
+        "Ethanol",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Cadmium chloride",
+        [
+          "Cadmium chloride is related to alcohol.",
+          "Additional information about Cadmium chloride."
+        ]
+      ],
+      [
+        "Ethanol",
+        [
+          "Ethanol connects to the answer alcohol.",
+          "More details about Ethanol."
+        ]
+      ]
+    ],
+    "dataset": "hotpotqa_test",
+    "source": "existing_test_data"
+  }
+]

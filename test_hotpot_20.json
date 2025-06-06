@@ -1,0 +1,332 @@
+[
+  {
+    "_id": "hotpot_train_0",
+    "question": "Which magazine was started first Arthur's Magazine or First for Women?",
+    "answer": "Arthur's Magazine",
+    "supporting_facts": [
+      [
+        "Arthur's Magazine",
+        0
+      ],
+      [
+        "First for Women",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Arthur's Magazine",
+        [
+          "Arthur's Magazine is related to Arthur's Magazine.",
+          "Additional information about Arthur's Magazine."
+        ]
+      ],
+      [
+        "First for Women",
+        [
+          "First for Women connects to the answer Arthur's Magazine.",
+          "More details about First for Women."
+        ]
+      ]
+    ],
+    "category": "Person",
+    "hop_count": 2
+  },
+  {
+    "_id": "hotpot_train_1",
+    "question": "The Oberoi family is part of a hotel company that has a head office in what city?",
+    "answer": "Delhi",
+    "supporting_facts": [
+      [
+        "Oberoi family",
+        0
+      ],
+      [
+        "The Oberoi Group",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Oberoi family",
+        [
+          "Oberoi family is related to Delhi.",
+          "Additional information about Oberoi family."
+        ]
+      ],
+      [
+        "The Oberoi Group",
+        [
+          "The Oberoi Group connects to the answer Delhi.",
+          "More details about The Oberoi Group."
+        ]
+      ]
+    ],
+    "category": "Organization",
+    "hop_count": 2
+  },
+  {
+    "_id": "hotpot_train_2",
+    "question": "Musician and satirist Allie Goertz wrote a song about the \"The Simpsons\" character Milhouse, who Matt Groening named after who?",
+    "answer": "President Richard Nixon",
+    "supporting_facts": [
+      [
+        "Allie Goertz",
+        0
+      ],
+      [
+        "Allie Goertz",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Allie Goertz",
+        [
+          "Allie Goertz is related to President Richard Nixon.",
+          "Additional information about Allie Goertz."
+        ]
+      ],
+      [
+        "Allie Goertz",
+        [
+          "Allie Goertz connects to the answer President Richard Nixon.",
+          "More details about Allie Goertz."
+        ]
+      ]
+    ],
+    "category": "Person",
+    "hop_count": 3
+  },
+  {
+    "_id": "hotpot_train_3",
+    "question": " What nationality was James Henry Miller's wife?",
+    "answer": "American",
+    "supporting_facts": [
+      [
+        "Peggy Seeger",
+        0
+      ],
+      [
+        "Peggy Seeger",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Peggy Seeger",
+        [
+          "Peggy Seeger is related to American.",
+          "Additional information about Peggy Seeger."
+        ]
+      ],
+      [
+        "Peggy Seeger",
+        [
+          "Peggy Seeger connects to the answer American.",
+          "More details about Peggy Seeger."
+        ]
+      ]
+    ],
+    "category": "Person",
+    "hop_count": 3
+  },
+  {
+    "_id": "hotpot_train_4",
+    "question": "Cadmium Chloride is slightly soluble in this chemical, it is also called what?",
+    "answer": "alcohol",
+    "supporting_facts": [
+      [
+        "Cadmium chloride",
+        0
+      ],
+      [
+        "Ethanol",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Cadmium chloride",
+        [
+          "Cadmium chloride is related to alcohol.",
+          "Additional information about Cadmium chloride."
+        ]
+      ],
+      [
+        "Ethanol",
+        [
+          "Ethanol connects to the answer alcohol.",
+          "More details about Ethanol."
+        ]
+      ]
+    ],
+    "category": "Person",
+    "hop_count": 2
+  },
+  {
+    "_id": "hotpot_train_5",
+    "question": "Which tennis player won more Grand Slam titles, Henri Leconte or Jonathan Stark?",
+    "answer": "Jonathan Stark",
+    "supporting_facts": [
+      [
+        "Jonathan Stark (tennis)",
+        0
+      ],
+      [
+        "Jonathan Stark (tennis)",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Jonathan Stark (tennis)",
+        [
+          "Jonathan Stark (tennis) is related to Jonathan Stark.",
+          "Additional information about Jonathan Stark (tennis)."
+        ]
+      ],
+      [
+        "Jonathan Stark (tennis)",
+        [
+          "Jonathan Stark (tennis) connects to the answer Jonathan Stark.",
+          "More details about Jonathan Stark (tennis)."
+        ]
+      ]
+    ],
+    "category": "Person",
+    "hop_count": 3
+  },
+  {
+    "_id": "hotpot_train_6",
+    "question": "Which genus of moth in the world's seventh-largest country contains only one species?",
+    "answer": "Crambidae",
+    "supporting_facts": [
+      [
+        "Indogrammodes",
+        0
+      ],
+      [
+        "Indogrammodes",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Indogrammodes",
+        [
+          "Indogrammodes is related to Crambidae.",
+          "Additional information about Indogrammodes."
+        ]
+      ],
+      [
+        "Indogrammodes",
+        [
+          "Indogrammodes connects to the answer Crambidae.",
+          "More details about Indogrammodes."
+        ]
+      ]
+    ],
+    "category": "Location",
+    "hop_count": 3
+  },
+  {
+    "_id": "hotpot_train_7",
+    "question": "Who was once considered the best kick boxer in the world, however he has been involved in a number of controversies relating to his \"unsportsmanlike conducts\" in the sport and crimes of violence outside of the ring.",
+    "answer": "Badr Hari",
+    "supporting_facts": [
+      [
+        "Global Fighting Championship",
+        0
+      ],
+      [
+        "Global Fighting Championship",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "Global Fighting Championship",
+        [
+          "Global Fighting Championship is related to Badr Hari.",
+          "Additional information about Global Fighting Championship."
+        ]
+      ],
+      [
+        "Global Fighting Championship",
+        [
+          "Global Fighting Championship connects to the answer Badr Hari.",
+          "More details about Global Fighting Championship."
+        ]
+      ]
+    ],
+    "category": "Person",
+    "hop_count": 3
+  },
+  {
+    "_id": "hotpot_train_8",
+    "question": "The Dutch-Belgian television series that \"House of Anubis\" was based on first aired in what year?",
+    "answer": "2006",
+    "supporting_facts": [
+      [
+        "House of Anubis",
+        0
+      ],
+      [
+        "Het Huis Anubis",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "House of Anubis",
+        [
+          "House of Anubis is related to 2006.",
+          "Additional information about House of Anubis."
+        ]
+      ],
+      [
+        "Het Huis Anubis",
+        [
+          "Het Huis Anubis connects to the answer 2006.",
+          "More details about Het Huis Anubis."
+        ]
+      ]
+    ],
+    "category": "Time",
+    "hop_count": 2
+  },
+  {
+    "_id": "hotpot_train_9",
+    "question": "What is the length of the track where the 2013 Liqui Moly Bathurst 12 Hour was staged?",
+    "answer": "6.213 km long",
+    "supporting_facts": [
+      [
+        "2013 Liqui Moly Bathurst 12 Hour",
+        0
+      ],
+      [
+        "2013 Liqui Moly Bathurst 12 Hour",
+        0
+      ]
+    ],
+    "context": [
+      [
+        "2013 Liqui Moly Bathurst 12 Hour",
+        [
+          "2013 Liqui Moly Bathurst 12 Hour is related to 6.213 km long.",
+          "Additional information about 2013 Liqui Moly Bathurst 12 Hour."
+        ]
+      ],
+      [
+        "2013 Liqui Moly Bathurst 12 Hour",
+        [
+          "2013 Liqui Moly Bathurst 12 Hour connects to the answer 6.213 km long.",
+          "More details about 2013 Liqui Moly Bathurst 12 Hour."
+        ]
+      ]
+    ],
+    "category": "Person",
+    "hop_count": 3
+  }
+]
