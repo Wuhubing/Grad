@@ -65,15 +65,19 @@ class MultiModelKnowledgeCouplingMVP:
         }
     }
     
-    def __init__(self, model_path: str = "gpt2", device: str = None):
+    def __init__(self, model_path: str = "gpt2", device: str = None, 
+                 layer_range: Optional[Tuple[int, int]] = None):
         self.model_path = model_path
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.model_type = self._detect_model_type(model_path)
+        self.layer_range = layer_range  # 新增：指定层范围
         
         print(f"🤖 Initializing Multi-Model Knowledge Coupling MVP")
         print(f"Model: {model_path}")
         print(f"Type: {self.model_type.upper()}")
         print(f"Device: {self.device}")
+        if layer_range:
+            print(f"Layer range: {layer_range[0]}-{layer_range[1]} (focusing on high-level semantic layers)")
         
         # 根据模型类型加载相应的tokenizer和model
         self._load_model()
@@ -153,7 +157,7 @@ class MultiModelKnowledgeCouplingMVP:
         print(f"🔍 Inferred model type: {self.model_type.upper()}")
     
     def _get_target_layers(self) -> List[str]:
-        """获取目标层名称列表"""
+        """获取目标层名称列表 - 支持指定层范围"""
         if self.model_type not in self.SUPPORTED_MODELS:
             # 通用方法：查找所有MLP相关层
             target_layers = []
@@ -180,12 +184,27 @@ class MultiModelKnowledgeCouplingMVP:
         else:
             num_layers = 12
         
+        # 确定层范围
+        if self.layer_range:
+            start_layer, end_layer = self.layer_range
+            start_layer = max(0, start_layer)
+            end_layer = min(num_layers, end_layer + 1)  # +1 because range is exclusive
+        else:
+            # 默认使用最后4层（高层语义表示）
+            if self.model_type == 'llama':
+                start_layer = max(0, num_layers - 4)  # 最后4层
+                end_layer = num_layers
+            else:  # gpt2
+                start_layer = max(0, num_layers - 4)  # 最后4层
+                end_layer = num_layers
+        
         # 生成目标层名称
         layer_pattern = config['layer_pattern']
-        for i in range(num_layers):
+        for i in range(start_layer, end_layer):
             layer_name = layer_pattern.format(i)
             target_layers.append(layer_name)
         
+        print(f"🎯 Using layers {start_layer}-{end_layer-1} ({len(target_layers)} layers total)")
         return target_layers
     
     def extract_knowledge_pieces_from_hotpot(self, hotpot_data: List[Dict], 
@@ -271,7 +290,7 @@ class MultiModelKnowledgeCouplingMVP:
             return 'Science'
     
     def compute_knowledge_gradient(self, piece: KnowledgePiece) -> Optional[torch.Tensor]:
-        """计算知识片段的梯度向量 - GPU优化版本"""
+        """计算知识片段的梯度向量 - GPU优化版本，支持指定层范围"""
         try:
             prompt = piece.question + " Answer:"
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
@@ -386,7 +405,7 @@ class MultiModelKnowledgeCouplingMVP:
         print(f"📊 Computed {coupling_matrix.shape[0]}×{coupling_matrix.shape[1]} coupling matrix on GPU")
         return coupling_matrix
 
-    def save_analysis_results(self, output_dir: str = "gpu_coupling_results"):
+    def save_analysis_results(self, output_dir: str = "results/coupling_analysis", dataset_info: Dict[str, Any] = None):
         """保存分析结果为跨pot分析所需格式"""
         import os
         
@@ -425,24 +444,34 @@ class MultiModelKnowledgeCouplingMVP:
                 json.dump(self.piece_ids_order, f, indent=2)
             print(f"✅ Saved piece IDs order to piece_ids_order.json")
         
-        # 4. 保存GPU性能信息
+        # 4. 保存GPU性能信息和数据集信息
+        analysis_metadata = {
+            'model_info': {
+                'model_path': self.model_path,
+                'model_type': self.model_type,
+                'layer_range': self.layer_range,
+                'target_layers_count': len(self._get_target_layers())
+            },
+            'dataset_info': dataset_info or {},
+            'analysis_timestamp': self._get_timestamp()
+        }
+        
         if torch.cuda.is_available():
-            gpu_info = {
+            analysis_metadata['gpu_info'] = {
                 'device': str(self.device),
                 'gpu_name': torch.cuda.get_device_name(0),
                 'gpu_memory_allocated': torch.cuda.memory_allocated() / 1e9,
                 'gpu_memory_reserved': torch.cuda.memory_reserved() / 1e9,
-                'model_type': self.model_type,
                 'gradient_computation': 'GPU',
                 'coupling_computation': 'GPU'
             }
-            
-            gpu_file = os.path.join(output_dir, "gpu_performance.json")
-            with open(gpu_file, 'w', encoding='utf-8') as f:
-                json.dump(gpu_info, f, indent=2)
-            print(f"✅ Saved GPU performance info to gpu_performance.json")
         
-        print(f"🎯 All results saved to {output_dir}/ - Ready for cross-pot analysis!")
+        metadata_file = os.path.join(output_dir, "analysis_metadata.json")
+        with open(metadata_file, 'w', encoding='utf-8') as f:
+            json.dump(analysis_metadata, f, indent=2)
+        print(f"✅ Saved analysis metadata and dataset info to analysis_metadata.json")
+        
+        print(f"🎯 All results saved to {output_dir}/ - Ready for analysis!")
 
     def analyze_coupling_patterns(self) -> Dict[str, Any]:
         """分析耦合模式 - 兼容GPU张量"""
@@ -683,10 +712,15 @@ class MultiModelKnowledgeCouplingMVP:
         print(f"🌊 Measured {len(ripple_effects)} ripple effects")
         return ripple_effects
     
-    def plot_coupling_heatmap(self, save_path: str = "coupling_heatmap.png"):
+    def plot_coupling_heatmap(self, save_path: str = None, output_dir: str = "results/coupling_analysis"):
         """绘制耦合热图"""
         if self.coupling_matrix is None:
             raise ValueError("Coupling matrix not computed.")
+        
+        # 如果没有指定保存路径，使用output_dir
+        if save_path is None:
+            os.makedirs(output_dir, exist_ok=True)
+            save_path = os.path.join(output_dir, "coupling_heatmap.png")
         
         plt.figure(figsize=(12, 10))
         
@@ -717,11 +751,17 @@ class MultiModelKnowledgeCouplingMVP:
         plt.close()
         
         print(f"🎨 Coupling heatmap saved to: {save_path}")
+        return save_path
     
-    def generate_mvp_report(self, save_path: str = "mvp_report.md") -> str:
+    def generate_mvp_report(self, save_path: str = None, output_dir: str = "results/coupling_analysis") -> str:
         """生成MVP分析报告"""
         if self.coupling_matrix is None:
             raise ValueError("Analysis not completed. Run full analysis first.")
+        
+        # 如果没有指定保存路径，使用output_dir
+        if save_path is None:
+            os.makedirs(output_dir, exist_ok=True)
+            save_path = os.path.join(output_dir, "mvp_report.md")
         
         coupling_analysis = self.analyze_coupling_patterns()
         high_coupling_pairs = self.predict_ripple_candidates()
@@ -729,7 +769,7 @@ class MultiModelKnowledgeCouplingMVP:
         with open(save_path, 'w') as f:
             f.write("# Knowledge Coupling MVP Analysis Report\n\n")
             f.write("## 🎯 Research Goal\n")
-            f.write("Quantify knowledge piece coupling in LLaMA-2 7B using gradient similarity analysis.\n\n")
+            f.write(f"Quantify knowledge piece coupling in {self.model_type.upper()} using gradient similarity analysis.\n\n")
             
             f.write("## 📊 Key Findings\n\n")
             f.write(f"**Total Knowledge Pieces:** {len(self.knowledge_pieces)}  \n")
@@ -746,7 +786,7 @@ class MultiModelKnowledgeCouplingMVP:
             
             f.write("\n## 🔬 Methodology\n\n")
             f.write("1. **Knowledge Extraction:** HotpotQA 2-hop chains → cloze questions\n")
-            f.write("2. **Gradient Computation:** ∇_θ log P(answer|question) targeting LLaMA down_proj layers\n")
+            f.write(f"2. **Gradient Computation:** ∇_θ log P(answer|question) targeting {self.model_type.upper()} layers\n")
             f.write("3. **Coupling Measurement:** Cosine similarity between gradient vectors\n")
             f.write("4. **Ripple Prediction:** High coupling (≥0.4) → potential ripple effects\n\n")
             
@@ -755,17 +795,142 @@ class MultiModelKnowledgeCouplingMVP:
             f.write("2. **Ripple Measurement:** ΔlogP and EM evaluation on edited model\n")
             f.write("3. **Validation:** GradSim vs actual ripple correlation analysis\n\n")
             
-            f.write("---\n*Generated by LLaMA Knowledge Coupling MVP*\n")
+            f.write("---\n*Generated by Multi-Model Knowledge Coupling MVP*\n")
         
         print(f"📝 MVP report saved to: {save_path}")
         return save_path
-    
+
+    def save_coupling_results_for_validation(self, output_dir: str = "results/coupling_analysis", dataset_info: Dict[str, Any] = None):
+        """保存耦合度计算结果用于验证 - 专注于核心数据"""
+        import os
+        
+        # 创建输出目录
+        os.makedirs(output_dir, exist_ok=True)
+        
+        print(f"💾 Saving coupling results for validation to {output_dir}/...")
+        
+        # 转换耦合矩阵为numpy
+        if isinstance(self.coupling_matrix, torch.Tensor):
+            coupling_np = self.coupling_matrix.detach().cpu().numpy()
+        else:
+            coupling_np = self.coupling_matrix
+        
+        # 1. 保存详细的耦合度结果
+        coupling_results = {
+            'metadata': {
+                'model_path': self.model_path,
+                'model_type': self.model_type,
+                'layer_range': self.layer_range,
+                'total_knowledge_pieces': len(self.knowledge_pieces),
+                'matrix_shape': coupling_np.shape,
+                'timestamp': self._get_timestamp()
+            },
+            'dataset_info': dataset_info or {},
+            'knowledge_pieces': [],
+            'coupling_pairs': [],
+            'statistics': {}
+        }
+        
+        # 添加知识片段信息
+        for i, piece in enumerate(self.knowledge_pieces):
+            coupling_results['knowledge_pieces'].append({
+                'index': i,
+                'piece_id': piece.piece_id,
+                'question': piece.question,
+                'answer': piece.answer,
+                'category': piece.category
+            })
+        
+        # 添加所有耦合对（不只是高耦合的）
+        piece_ids = [p.piece_id for p in self.knowledge_pieces]
+        for i in range(len(piece_ids)):
+            for j in range(i + 1, len(piece_ids)):
+                coupling_strength = float(coupling_np[i, j])
+                coupling_results['coupling_pairs'].append({
+                    'piece_1_index': i,
+                    'piece_2_index': j,
+                    'piece_1_id': piece_ids[i],
+                    'piece_2_id': piece_ids[j],
+                    'coupling_strength': coupling_strength,
+                    'is_same_hotpot': piece_ids[i].split('_hop_')[0] == piece_ids[j].split('_hop_')[0]
+                })
+        
+        # 添加统计信息
+        off_diagonal = coupling_np[~np.eye(coupling_np.shape[0], dtype=bool)]
+        coupling_results['statistics'] = {
+            'mean_coupling': float(np.mean(off_diagonal)),
+            'std_coupling': float(np.std(off_diagonal)),
+            'min_coupling': float(np.min(off_diagonal)),
+            'max_coupling': float(np.max(off_diagonal)),
+            'high_coupling_count': int(np.sum(off_diagonal >= 0.4)),
+            'moderate_coupling_count': int(np.sum((off_diagonal >= 0.1) & (off_diagonal < 0.4))),
+            'low_coupling_count': int(np.sum(off_diagonal < 0.1))
+        }
+        
+        # 保存为JSON文件
+        coupling_file = os.path.join(output_dir, "coupling_results_for_validation.json")
+        with open(coupling_file, 'w', encoding='utf-8') as f:
+            json.dump(coupling_results, f, indent=2, ensure_ascii=False)
+        
+        print(f"✅ Saved coupling results for validation: coupling_results_for_validation.json")
+        
+        # 2. 保存简化的CSV格式用于快速验证
+        csv_file = os.path.join(output_dir, "coupling_pairs.csv")
+        with open(csv_file, 'w', encoding='utf-8') as f:
+            f.write("piece_1_id,piece_2_id,coupling_strength,is_same_hotpot,piece_1_answer,piece_2_answer\n")
+            for pair in coupling_results['coupling_pairs']:
+                p1_answer = coupling_results['knowledge_pieces'][pair['piece_1_index']]['answer']
+                p2_answer = coupling_results['knowledge_pieces'][pair['piece_2_index']]['answer']
+                f.write(f"{pair['piece_1_id']},{pair['piece_2_id']},{pair['coupling_strength']:.6f},{pair['is_same_hotpot']},{p1_answer},{p2_answer}\n")
+        
+        print(f"✅ Saved CSV format for quick analysis: coupling_pairs.csv")
+        
+        # 3. 保存高耦合对的详细信息
+        high_coupling_pairs = [p for p in coupling_results['coupling_pairs'] if p['coupling_strength'] >= 0.4]
+        high_coupling_pairs.sort(key=lambda x: x['coupling_strength'], reverse=True)
+        
+        high_coupling_file = os.path.join(output_dir, "high_coupling_pairs.json")
+        with open(high_coupling_file, 'w', encoding='utf-8') as f:
+            json.dump({
+                'threshold': 0.4,
+                'count': len(high_coupling_pairs),
+                'pairs': high_coupling_pairs
+            }, f, indent=2, ensure_ascii=False)
+        
+        print(f"✅ Saved high coupling pairs: high_coupling_pairs.json ({len(high_coupling_pairs)} pairs)")
+        
+        return coupling_file
+
     def run_mvp_analysis(self, hotpot_data: List[Dict], max_samples: int = 50, 
-                         output_dir: str = "gpu_coupling_results") -> Dict[str, Any]:
+                         output_dir: str = "results/coupling_analysis", 
+                         dataset_file_path: str = None,
+                         generate_report: bool = False,
+                         generate_heatmap: bool = False) -> Dict[str, Any]:
         """运行完整的MVP分析"""
         print("\n" + "🤖" + "="*50 + "🤖")
         print("MULTI-MODEL KNOWLEDGE COUPLING MVP ANALYSIS")
         print("="*52)
+        
+        # 准备数据集信息
+        dataset_info = {
+            'dataset_file_path': dataset_file_path,
+            'total_samples_in_file': len(hotpot_data),
+            'samples_processed': min(max_samples, len(hotpot_data)),
+            'dataset_name': 'HotpotQA',
+            'data_format': 'multi-hop QA'
+        }
+        
+        # 分析数据集基本信息
+        if hotpot_data:
+            sample_fields = list(hotpot_data[0].keys()) if hotpot_data else []
+            dataset_info['sample_fields'] = sample_fields
+            
+            # 统计类别分布
+            categories = {}
+            for sample in hotpot_data[:max_samples]:
+                category = sample.get('category', 'Unknown')
+                categories[category] = categories.get(category, 0) + 1
+            dataset_info['category_distribution'] = categories
         
         # Step 1: 提取知识片段
         knowledge_pieces = self.extract_knowledge_pieces_from_hotpot(hotpot_data, max_samples)
@@ -783,14 +948,20 @@ class MultiModelKnowledgeCouplingMVP:
         high_coupling_pairs = self.predict_ripple_candidates()
         
         # Step 6: 保存分析结果（为跨pot分析准备）
-        self.save_analysis_results(output_dir)
+        self.save_analysis_results(output_dir, dataset_info)
         
-        # Step 7: 可视化
-        heatmap_path = "coupling_heatmap.png"
-        self.plot_coupling_heatmap(heatmap_path)
+        # Step 7: 保存专门用于验证的耦合度结果
+        coupling_validation_file = self.save_coupling_results_for_validation(output_dir, dataset_info)
         
-        # Step 8: 生成报告
-        report_path = self.generate_mvp_report()
+        # Step 8: 可选的可视化和报告
+        heatmap_path = None
+        report_path = None
+        
+        if generate_heatmap:
+            heatmap_path = self.plot_coupling_heatmap(output_dir=output_dir)
+        
+        if generate_report:
+            report_path = self.generate_mvp_report(output_dir=output_dir)
         
         # 准备详细的知识片段信息
         knowledge_pieces_detailed = []
@@ -847,11 +1018,15 @@ class MultiModelKnowledgeCouplingMVP:
                 'model_path': self.model_path,
                 'model_type': self.model_type,
                 'device': str(self.device),
+                'layer_range': self.layer_range,
                 'total_samples_processed': len(knowledge_pieces),
                 'max_samples_requested': max_samples,
                 'output_directory': output_dir,
                 'analysis_timestamp': self._get_timestamp()
             },
+            
+            # 数据集信息
+            'dataset_info': dataset_info,
             
             # 知识片段详细信息
             'knowledge_pieces': {
@@ -887,9 +1062,12 @@ class MultiModelKnowledgeCouplingMVP:
                 'coupling_matrix': f"{output_dir}/coupling_matrix.npy",
                 'knowledge_pieces_json': f"{output_dir}/knowledge_pieces.json",
                 'piece_ids_order': f"{output_dir}/piece_ids_order.json",
-                'gpu_performance': f"{output_dir}/gpu_performance.json",
-                'heatmap_visualization': heatmap_path,
-                'analysis_report': report_path
+                'analysis_metadata': f"{output_dir}/analysis_metadata.json",
+                'coupling_validation_file': coupling_validation_file,
+                'coupling_pairs_csv': f"{output_dir}/coupling_pairs.csv",
+                'high_coupling_pairs': f"{output_dir}/high_coupling_pairs.json",
+                'heatmap_visualization': heatmap_path if generate_heatmap else None,
+                'analysis_report': report_path if generate_report else None
             },
             
             # GPU性能信息
@@ -900,7 +1078,7 @@ class MultiModelKnowledgeCouplingMVP:
                 'ripple_candidates_available': len(high_coupling_pairs) > 0,
                 'recommended_candidates': min(5, len(high_coupling_pairs)),
                 'next_steps': [
-                    "Run cross-pot coupling analysis",
+                    "Validate coupling results using generated files",
                     "Execute ripple effect validation",
                     "Validate GradSim hypothesis"
                 ]
@@ -911,8 +1089,10 @@ class MultiModelKnowledgeCouplingMVP:
         print(f"📊 Mean coupling: {coupling_analysis['mean_coupling']:.4f}")
         print(f"🔥 High coupling pairs: {len(high_coupling_pairs)}")
         print(f"🧪 Ripple candidates: {len(ripple_candidates_detailed)}")
-        print(f"📝 Report: {report_path}")
         print(f"💾 Results saved to: {output_dir}/")
+        print(f"🎯 Coupling validation file: {coupling_validation_file}")
+        if report_path:
+            print(f"📝 Report: {report_path}")
         print(f"🎯 Detailed results available in returned dictionary")
         
         return results
@@ -932,9 +1112,46 @@ def main():
     parser.add_argument("--model_path", default="gpt2", help="Model path")
     parser.add_argument("--max_samples", type=int, default=50, help="Maximum samples to process")
     parser.add_argument("--device", help="Device (cuda/cpu)")
-    parser.add_argument("--output_dir", default="gpu_coupling_results", help="Output directory for results")
+    parser.add_argument("--output_dir", default="results/coupling_analysis", help="Output directory for results")
+    parser.add_argument("--layer_start", type=int, help="Start layer for gradient computation (default: auto)")
+    parser.add_argument("--layer_end", type=int, help="End layer for gradient computation (default: auto)")
+    parser.add_argument("--no_report", action="store_true", help="Skip generating analysis report (default: skip)")
+    parser.add_argument("--no_heatmap", action="store_true", help="Skip generating coupling heatmap (default: skip)")
+    parser.add_argument("--generate_report", action="store_true", help="Generate analysis report")
+    parser.add_argument("--generate_heatmap", action="store_true", help="Generate coupling heatmap")
     
     args = parser.parse_args()
+    
+    # 处理层范围参数
+    layer_range = None
+    if args.layer_start is not None and args.layer_end is not None:
+        layer_range = (args.layer_start, args.layer_end)
+        print(f"🎯 Using custom layer range: {args.layer_start}-{args.layer_end}")
+    elif args.model_path and 'llama' in args.model_path.lower():
+        # 对于LLaMA模型，推荐使用高层 (最后4层：28,29,30,31)
+        layer_range = (28, 31)
+        print(f"🎯 Auto-selected high semantic layers for LLaMA: 28-31 (recommended by boss)")
+    elif args.model_path and 'gpt2' in args.model_path.lower():
+        # 对于GPT2模型，使用最后几层
+        if 'large' in args.model_path.lower() or 'xl' in args.model_path.lower():
+            layer_range = (44, 47)  # GPT2-large/xl的最后几层
+        else:
+            layer_range = (8, 11)   # GPT2-small/medium的最后几层
+        print(f"🎯 Auto-selected high semantic layers for GPT2: {layer_range}")
+    
+    # 处理报告和可视化生成选项
+    generate_report = args.generate_report and not args.no_report
+    generate_heatmap = args.generate_heatmap and not args.no_heatmap
+    
+    if generate_report:
+        print("📝 Will generate analysis report")
+    else:
+        print("⏭️  Skipping analysis report generation (use --generate_report to enable)")
+    
+    if generate_heatmap:
+        print("🎨 Will generate coupling heatmap")
+    else:
+        print("⏭️  Skipping heatmap generation (use --generate_heatmap to enable)")
     
     # 加载数据
     print(f"📚 Loading HotpotQA data from {args.hotpot_data}")
@@ -944,13 +1161,26 @@ def main():
     # 初始化分析器
     analyzer = MultiModelKnowledgeCouplingMVP(
         model_path=args.model_path,
-        device=args.device
+        device=args.device,
+        layer_range=layer_range
     )
     
     # 运行分析
-    results = analyzer.run_mvp_analysis(hotpot_data, args.max_samples, args.output_dir)
+    results = analyzer.run_mvp_analysis(
+        hotpot_data, 
+        args.max_samples, 
+        args.output_dir,
+        dataset_file_path=args.hotpot_data,  # 传递数据集文件路径
+        generate_report=generate_report,
+        generate_heatmap=generate_heatmap
+    )
     
     print(f"\n🎯 MVP Analysis completed successfully!")
+    print(f"\n📁 Key validation files generated:")
+    print(f"   📊 coupling_results_for_validation.json - Complete coupling analysis")
+    print(f"   📈 coupling_pairs.csv - Quick CSV format for analysis")
+    print(f"   🔥 high_coupling_pairs.json - High coupling pairs (≥0.4)")
+    print(f"   💾 coupling_matrix.npy - Raw coupling matrix")
 
 
 if __name__ == "__main__":
