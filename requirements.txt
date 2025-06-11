@@ -1,61 +1,55 @@
-# 知识耦合分析项目依赖包
-# PyTorch 深度学习框架
+# 核心深度学习框架
 torch>=2.0.0
-torchvision>=0.15.0
-torchaudio>=2.0.0
-
-# Transformers 和 HuggingFace 生态
 transformers>=4.35.0
-datasets>=2.14.0
-huggingface-hub>=0.17.0
 accelerate>=0.23.0
-tokenizers>=0.14.0
 
-# 数据处理和科学计算
+# 数据处理
+datasets>=2.14.0
 numpy>=1.24.0
 pandas>=2.0.0
-scipy>=1.11.0
-scikit-learn>=1.3.0
-
-# 进度条和实用工具
 tqdm>=4.65.0
-psutil>=5.9.0
-GPUtil>=1.4.0
 
-# 可视化和绘图
+# 模型相关（LLaMA2支持）
+sentencepiece>=0.1.99
+protobuf>=3.20.0
+tokenizers>=0.14.0
+
+# 科学计算和机器学习
+scikit-learn>=1.3.0
+scipy>=1.10.0
+
+# 可视化
 matplotlib>=3.7.0
 seaborn>=0.12.0
 plotly>=5.15.0
 
-# Jupyter 环境支持
+# 系统监控
+psutil>=5.9.0
+gpustat>=1.1.0
+
+# HuggingFace相关
+huggingface-hub>=0.17.0
+safetensors>=0.3.0
+
+# Jupyter支持
 jupyter>=1.0.0
 ipywidgets>=8.0.0
-notebook>=7.0.0
+notebook>=6.5.0
 
 # 网络和下载
-requests>=2.31.0
-urllib3>=2.0.0
+requests>=2.28.0
 wget>=3.2
 
-# JSON 和配置文件处理
+# 文件操作和压缩
+zipfile-deflate64>=0.2.0
+
+# JSON和配置文件处理
 jsonlines>=3.1.0
-pyyaml>=6.0.0
-toml>=0.10.0
+pyyaml>=6.0
 
-# 内存优化和性能监控
-memory-profiler>=0.61.0
-line-profiler>=4.1.0
+# 内存优化
+bitsandbytes>=0.41.0
 
-# 其他实用工具
-colorama>=0.4.6
-rich>=13.5.0
-click>=8.1.0
-pathlib2>=2.3.7
-
-# 可选：CUDA 相关（如果使用 GPU）
-# nvidia-ml-py3>=7.352.0
-
-# 开发和测试工具（可选）
-pytest>=7.4.0
-black>=23.7.0
-flake8>=6.0.0 
+# 可选：如果需要量化支持
+# auto-gptq>=0.4.0
+# optimum>=1.12.0
