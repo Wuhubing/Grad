@@ -465,7 +465,7 @@ class MultiModelKnowledgeCouplingMVP:
                 'gradient_computation': 'GPU',
                 'coupling_computation': 'GPU'
             }
-        
+            
         metadata_file = os.path.join(output_dir, "analysis_metadata.json")
         with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(analysis_metadata, f, indent=2)
@@ -799,7 +799,7 @@ class MultiModelKnowledgeCouplingMVP:
         
         print(f"📝 MVP report saved to: {save_path}")
         return save_path
-
+    
     def save_coupling_results_for_validation(self, output_dir: str = "results/coupling_analysis", dataset_info: Dict[str, Any] = None):
         """保存耦合度计算结果用于验证 - 专注于核心数据"""
         import os

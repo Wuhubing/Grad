@@ -53,3 +53,4 @@ bitsandbytes>=0.41.0
 # 可选：如果需要量化支持
 # auto-gptq>=0.4.0
 # optimum>=1.12.0
+ 
